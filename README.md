@@ -37,14 +37,17 @@ O banco de dados foi estruturado para suportar escalabilidade e histórico:
 * **Tabela de Concessionárias:** Consulta de tarifas vigentes.
 * **Tabela de Veículos:** Atributos de consumo (km/l) e índices de emissão.
 
+<img width="1461" height="668" alt="image" src="https://github.com/user-attachments/assets/bf4a1031-3414-40a6-a9b1-e2a5c6f9352a" />
 
-> 🔗 [Acesse o dbdiagram aqui]()
+> 🔗 [Acesse o diagrama aqui]()
 
 ---
 
 ## 🗺️ Fluxograma do Usuário
 
 O fluxo abrange desde o check de saldo inicial, a escolha da "Rota Verde", até o disparo do Auto-Refill após a validação da tag na praça de pedágio.
+
+<img width="1600" height="872" alt="image" src="https://github.com/user-attachments/assets/ccde53bd-4e80-4786-b430-eac383f944b5" />
 
 > 🔗 [Acesse o Miro aqui]()
 
