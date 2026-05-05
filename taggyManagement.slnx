@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="taggyManagement.API/taggyManagement.API.csproj" />
+  <Project Path="taggyManagement.Application/taggyManagement.Application.csproj" />
+  <Project Path="taggyManagement.Domain/taggyManagement.Domain.csproj" />
+  <Project Path="taggyManagement.Infrastructure/taggyManagement.Infrastructure.csproj" />
+</Solution>
