@@ -1,41 +1,56 @@
-namespace taggyManagement.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using taggyManagement.Domain.ValueObjects;
+using taggyManagement.Domain.Common;
+using taggyManagement.Domain.Events;
 
-public class Tag
+namespace taggyManagement.Domain.Entities
 {
-    public bool Status { get; set; }
-    public decimal Balance { get; set; }
-
-    public static Tag Create(bool status, decimal balance)
+    public class Tag : taggyManagement.Domain.Common.AggregateRoot
     {
-        return new Tag
-        {
-            Status = status,
-            Balance = balance
-        };
-    }
+        public Guid Id { get; private set; }
+        public string Serial { get; private set; }
+        public decimal Balance { get; private set; }
+        public TagStatus Status { get; private set; }
 
-    public static void Debitar(Tag tag, decimal valor)
-    {
-        if (tag is null)
+        // Domain events are managed by AggregateRoot
+
+        public Tag(string serial, decimal initialBalance = 0m)
         {
-            throw new ArgumentNullException(nameof(tag));
+            Id = Guid.NewGuid();
+            Serial = serial ?? throw new ArgumentNullException(nameof(serial));
+            Balance = initialBalance;
+            Status = TagStatus.Active;
         }
 
-        if (valor < 0)
+        public Result<decimal> Debit(decimal amount)
         {
-            throw new ArgumentOutOfRangeException(nameof(valor), "O valor de débito não pode ser negativo.");
+            if (Status != TagStatus.Active) return Result<decimal>.Fail("Tag is not active");
+            if (amount <= 0) return Result<decimal>.Fail("Amount must be positive");
+            if (Balance < amount) return Result<decimal>.Fail("Insufficient balance");
+            Balance -= amount;
+            AddDomainEvent(new TagDebitedEvent(Id, amount, Balance));
+            return Result<decimal>.Ok(Balance);
         }
 
-        tag.Balance -= valor;
-    }
-
-    public static bool VerificarStatus(Tag tag)
-    {
-        if (tag is null)
+        public Result<decimal> Refill(decimal amount)
         {
-            throw new ArgumentNullException(nameof(tag));
+            if (amount <= 0) return Result<decimal>.Fail("Amount must be positive");
+            Balance += amount;
+            AddDomainEvent(new TagRefilledEvent(Id, amount, Balance));
+            return Result<decimal>.Ok(Balance);
         }
 
-        return tag.Status;
+        public Result<TagStatus> Block()
+        {
+            Status = TagStatus.Blocked;
+            return Result<TagStatus>.Ok(Status);
+        }
+
+        public Result<TagStatus> SetMaintenance()
+        {
+            Status = TagStatus.Maintenance;
+            return Result<TagStatus>.Ok(Status);
+        }
     }
 }

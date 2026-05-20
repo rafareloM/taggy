@@ -284,19 +284,44 @@ Your foundation is solid. Phase 2 (Domain Modeling) builds on this by adding the
 
 ---
 
-## Next: Phase 2 - Domain Modeling
+## Current Progress: Phase 2 - Domain Modeling
 
-When you're ready, ask for "Phase 2" and I'll guide you through creating:
-- Vehicle entity
-- Tag entity
-- TollPlaza entity
-- TollTariff entity
-- Trip entity
-- TollTransaction entity
+The repository has moved beyond the placeholder sample model and now contains the first real Taggy domain pieces.
 
-Plus value objects:
-- PropulsionType enum
-- TagStatus enum
-- TripStatus enum
+### Changes Made So Far
+- Replaced the placeholder `Car` model with a `Vehicle` aggregate in `src/taggyManagement.Domain/Entities/Car.cs`.
+- Updated `PropulsionType` to a namespaced, public enum in `src/taggyManagement.Domain/ValueObjects/PropulsionType.cs`.
+- Added `Tag` as a domain aggregate with balance, status, and event tracking in `src/taggyManagement.Domain/Entities/Tag.cs`.
+- Added a reusable `AggregateRoot` base class in `src/taggyManagement.Domain/Common/AggregateRoot.cs`.
+- Added a small `Result` / `Result<T>` abstraction in `src/taggyManagement.Domain/Common/Result.cs`.
+- Added domain event contracts and events:
+   - `src/taggyManagement.Domain/Events/IDomainEvent.cs`
+   - `src/taggyManagement.Domain/Events/TagDebitedEvent.cs`
+   - `src/taggyManagement.Domain/Events/TagRefilledEvent.cs`
+- Converted `Tag` behavior to return typed results:
+   - `Debit()` returns `Result<decimal>`
+   - `Refill()` returns `Result<decimal>`
+   - `Block()` returns `Result<TagStatus>`
+   - `SetMaintenance()` returns `Result<TagStatus>`
+- Added the rest of the first-pass toll domain model:
+   - `src/taggyManagement.Domain/ValueObjects/TripStatus.cs`
+   - `src/taggyManagement.Domain/Entities/TollPlaza.cs`
+   - `src/taggyManagement.Domain/Entities/TollTariff.cs`
+   - `src/taggyManagement.Domain/Entities/Trip.cs`
+   - `src/taggyManagement.Domain/Entities/TollTransaction.cs`
+- Verified the Domain project builds successfully after the changes.
 
-Each step will be as detailed and educational as Phase 1.
+### What These Changes Mean
+- Business rules now live inside the domain model instead of being scattered in application code.
+- `Tag` can now report success/failure without throwing for expected validation cases.
+- Domain events are ready for later publishing when repositories or application services save an aggregate.
+- `AggregateRoot` gives us a consistent place to collect and clear events.
+
+### Next Steps
+1. Add the remaining domain entities: `TollPlaza`, `TollTariff`, `Trip`, and `TollTransaction`.
+2. Add the remaining enums and value objects needed for those entities, such as `TripStatus`.
+3. Define repository interfaces in the Domain layer for the aggregates that need persistence.
+4. Move to the Application layer to create use cases that call the domain methods and handle `Result` values.
+5. Add Infrastructure implementations and EF Core mappings once the domain model is stable.
+
+The next implementation step should be repository abstractions for `Tag`, `Vehicle`, `Trip`, and `TollPlaza`, because that will let the Application layer start orchestrating the charging workflow against persistence.
