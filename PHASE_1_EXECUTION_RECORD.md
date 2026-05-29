@@ -289,7 +289,7 @@ Your foundation is solid. Phase 2 (Domain Modeling) builds on this by adding the
 The repository has moved beyond the placeholder sample model and now contains the first real Taggy domain pieces.
 
 ### Changes Made So Far
-- Replaced the placeholder `Car` model with a `Vehicle` aggregate in `src/taggyManagement.Domain/Entities/Car.cs`.
+- Replaced the placeholder `Car` model with a `Vehicle` aggregate in `src/taggyManagement.Domain/Entities/Vehicle.cs`.
 - Updated `PropulsionType` to a namespaced, public enum in `src/taggyManagement.Domain/ValueObjects/PropulsionType.cs`.
 - Added `Tag` as a domain aggregate with balance, status, and event tracking in `src/taggyManagement.Domain/Entities/Tag.cs`.
 - Added a reusable `AggregateRoot` base class in `src/taggyManagement.Domain/Common/AggregateRoot.cs`.
@@ -318,10 +318,8 @@ The repository has moved beyond the placeholder sample model and now contains th
 - `AggregateRoot` gives us a consistent place to collect and clear events.
 
 ### Next Steps
-1. Add the remaining domain entities: `TollPlaza`, `TollTariff`, `Trip`, and `TollTransaction`.
-2. Add the remaining enums and value objects needed for those entities, such as `TripStatus`.
-3. Define repository interfaces in the Domain layer for the aggregates that need persistence.
-4. Move to the Application layer to create use cases that call the domain methods and handle `Result` values.
-5. Add Infrastructure implementations and EF Core mappings once the domain model is stable.
+1. Define repository interfaces in the Domain layer for the aggregates that need persistence.
+2. Move to the Application layer to create use cases that call the domain methods and handle `Result` values.
+3. Add Infrastructure implementations and EF Core mappings once the domain model is stable.
 
 The next implementation step should be repository abstractions for `Tag`, `Vehicle`, `Trip`, and `TollPlaza`, because that will let the Application layer start orchestrating the charging workflow against persistence.
