@@ -11,7 +11,7 @@ namespace taggyManagement.Domain.Entities
         public Guid? TagId { get; private set; }
         public Guid? OriginTollPlazaId { get; private set; }
         public Guid? DestinationTollPlazaId { get; private set; }
-        public DateTime StartedAt { get; private set; }
+        public DateTime? StartedAt { get; private set; }
         public DateTime? CompletedAt { get; private set; }
         public TripStatus Status { get; private set; }
 
