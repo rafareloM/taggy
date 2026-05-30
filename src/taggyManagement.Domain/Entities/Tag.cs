@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using taggyManagement.Domain.ValueObjects;
 using taggyManagement.Domain.Common;
 using taggyManagement.Domain.Events;
@@ -17,6 +16,7 @@ namespace taggyManagement.Domain.Entities
 
         public Tag(string serial, decimal initialBalance = 0m)
         {
+            if (initialBalance < 0) throw new ArgumentOutOfRangeException(nameof(initialBalance), "Initial balance cannot be negative");
             Id = Guid.NewGuid();
             Serial = serial ?? throw new ArgumentNullException(nameof(serial));
             Balance = initialBalance;
