@@ -1,54 +1,53 @@
-using System;
-using taggyManagement.Domain.Common;
-using taggyManagement.Domain.ValueObjects;
+namespace taggyManagement.Domain.Entities;
 
-namespace taggyManagement.Domain.Entities
+public class Trip
 {
-    public class Trip : AggregateRoot
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
+    public Guid VehicleId { get; private set; }
+    public decimal DistanceKm { get; private set; }
+    public decimal TollCost { get; private set; }
+    public decimal FuelCost { get; private set; }
+    public decimal EnergyCost { get; private set; }
+    public decimal TotalCost { get; private set; }
+    public decimal CO2EmissionKg { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+
+    private Trip()
     {
-        public Guid Id { get; private set; }
-        public Guid VehicleId { get; private set; }
-        public Guid? TagId { get; private set; }
-        public Guid? OriginTollPlazaId { get; private set; }
-        public Guid? DestinationTollPlazaId { get; private set; }
-        public DateTime? StartedAt { get; private set; }
-        public DateTime? CompletedAt { get; private set; }
-        public TripStatus Status { get; private set; }
+    }
 
-        public Trip(Guid vehicleId)
+    public static Trip Create(
+        Guid userId,
+        Guid vehicleId,
+        decimal distanceKm,
+        decimal tollCost,
+        decimal fuelCost,
+        decimal energyCost,
+        decimal totalCost,
+        decimal co2EmissionKg)
+    {
+        if (userId == Guid.Empty) throw new ArgumentException("User id is required", nameof(userId));
+        if (vehicleId == Guid.Empty) throw new ArgumentException("Vehicle id is required", nameof(vehicleId));
+        if (distanceKm <= 0) throw new ArgumentOutOfRangeException(nameof(distanceKm), "Distance must be greater than zero");
+        if (tollCost < 0) throw new ArgumentOutOfRangeException(nameof(tollCost), "Toll cost cannot be negative");
+        if (fuelCost < 0) throw new ArgumentOutOfRangeException(nameof(fuelCost), "Fuel cost cannot be negative");
+        if (energyCost < 0) throw new ArgumentOutOfRangeException(nameof(energyCost), "Energy cost cannot be negative");
+        if (totalCost < 0) throw new ArgumentOutOfRangeException(nameof(totalCost), "Total cost cannot be negative");
+        if (co2EmissionKg < 0) throw new ArgumentOutOfRangeException(nameof(co2EmissionKg), "CO2 emission cannot be negative");
+
+        return new Trip
         {
-            Id = Guid.NewGuid();
-            VehicleId = vehicleId;
-            Status = TripStatus.Draft;
-        }
-
-        public Result<TripStatus> Start(Guid tagId, Guid? originTollPlazaId = null)
-        {
-            if (Status != TripStatus.Draft) return Result<TripStatus>.Fail("Trip is not in draft state");
-
-            TagId = tagId;
-            OriginTollPlazaId = originTollPlazaId;
-            StartedAt = DateTime.UtcNow;
-            Status = TripStatus.InProgress;
-            return Result<TripStatus>.Ok(Status);
-        }
-
-        public Result<TripStatus> Complete(Guid? destinationTollPlazaId = null)
-        {
-            if (Status != TripStatus.InProgress) return Result<TripStatus>.Fail("Trip is not in progress");
-
-            DestinationTollPlazaId = destinationTollPlazaId;
-            CompletedAt = DateTime.UtcNow;
-            Status = TripStatus.Completed;
-            return Result<TripStatus>.Ok(Status);
-        }
-
-        public Result<TripStatus> Cancel()
-        {
-            if (Status == TripStatus.Completed) return Result<TripStatus>.Fail("Completed trips cannot be cancelled");
-
-            Status = TripStatus.Cancelled;
-            return Result<TripStatus>.Ok(Status);
-        }
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            VehicleId = vehicleId,
+            DistanceKm = distanceKm,
+            TollCost = tollCost,
+            FuelCost = fuelCost,
+            EnergyCost = energyCost,
+            TotalCost = totalCost,
+            CO2EmissionKg = co2EmissionKg,
+            CreatedAt = DateTime.UtcNow
+        };
     }
 }

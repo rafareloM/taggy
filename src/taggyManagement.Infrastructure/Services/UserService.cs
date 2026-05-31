@@ -10,12 +10,14 @@ namespace taggyManagement.Infrastructure.Services;
 public sealed class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly ITagAccountRepository _tagAccountRepository;
     private readonly IAuthService _authService;
     private readonly PasswordHasher _passwordHasher;
 
-    public UserService(IUserRepository userRepository, IAuthService authService, PasswordHasher passwordHasher)
+    public UserService(IUserRepository userRepository, ITagAccountRepository tagAccountRepository, IAuthService authService, PasswordHasher passwordHasher)
     {
         _userRepository = userRepository;
+        _tagAccountRepository = tagAccountRepository;
         _authService = authService;
         _passwordHasher = passwordHasher;
     }
@@ -32,6 +34,7 @@ public sealed class UserService : IUserService
         var user = User.Create(request.FullName, request.Email, hash, salt);
 
         await _userRepository.AddAsync(user, cancellationToken);
+        await _tagAccountRepository.AddAsync(TagAccount.Create(user.Id), cancellationToken);
 
         return Result<AuthResponseDto>.Ok(new AuthResponseDto
         {
