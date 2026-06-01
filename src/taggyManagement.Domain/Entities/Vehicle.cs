@@ -19,6 +19,13 @@ namespace taggyManagement.Domain.Entities
         // Electric-specific
         public decimal? BatteryKwhPerKm { get; private set; }
 
+        private Vehicle()
+        {
+            Plate = string.Empty;
+            Brand = string.Empty;
+            Model = string.Empty;
+        }
+
         public Vehicle(string plate, string brand, string model, int year, PropulsionType propulsion)
         {
             Id = Guid.NewGuid();
@@ -27,6 +34,18 @@ namespace taggyManagement.Domain.Entities
             Model = model;
             Year = year;
             Propulsion = propulsion;
+        }
+
+        public void UpdateDetails(string plate, string brand, string model, int year, PropulsionType propulsion)
+        {
+            Plate = plate ?? throw new ArgumentNullException(nameof(plate));
+            Brand = brand;
+            Model = model;
+            Year = year;
+            Propulsion = propulsion;
+            FuelConsumptionKmPerLiter = null;
+            CO2GramsPerKm = null;
+            BatteryKwhPerKm = null;
         }
 
         public void SetCombustionMetrics(decimal kmPerLiter, decimal co2GramsPerKm)

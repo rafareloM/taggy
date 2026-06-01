@@ -55,3 +55,36 @@ O fluxo abrange desde o check de saldo inicial, a escolha da "Rota Verde", até 
 
 ## 💡 Diferencial
 Diferente de sistemas de monitoramento passivo, o **Taggy** atua na **operação direta**: ele gerencia o pagamento, garante o saldo via automação e valida a segurança da tag em tempo real, mantendo a pegada ecológica como o critério principal para a escolha de rotas.
+
+---
+
+## 🔐 User CRUD and Login
+
+The API now includes a self-service user flow with JWT bearer authentication:
+
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `GET /api/v1/users/me`
+- `PUT /api/v1/users/me`
+- `PATCH /api/v1/users/me/password`
+- `DELETE /api/v1/users/me`
+
+The current implementation uses an in-memory database so the API can be run and tested immediately. To change the JWT settings, edit the `Jwt` section in `src/taggyManagement.API/appsettings.json`.
+
+### Run locally
+
+```bash
+dotnet build taggyManagement.slnx
+dotnet run --project src/taggyManagement.API/taggyManagement.API.csproj
+```
+
+By default the API listens on `http://localhost:5158` in the development profile.
+
+### Import into Postman
+
+Import these files into Postman:
+
+- `docs/postman/taggy-api.postman_collection.json`
+- `docs/postman/taggy-api.postman_environment.json`
+
+After that, run `Register` or `Login` first. The login response stores `accessToken` automatically in the environment, and the user requests reuse it as the Bearer token.
