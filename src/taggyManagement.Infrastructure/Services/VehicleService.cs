@@ -16,15 +16,25 @@ public sealed class VehicleService : IVehicleService
         _vehicleRepository = vehicleRepository;
     }
 
-    public async Task<Result<IReadOnlyList<VehicleResponseDto>>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IReadOnlyList<VehicleResponseDto>>> GetAllAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var vehicles = await _vehicleRepository.GetAllAsync(cancellationToken);
+        if (userId == Guid.Empty)
+        {
+            return Result<IReadOnlyList<VehicleResponseDto>>.Fail("UserId is required");
+        }
+
+        var vehicles = await _vehicleRepository.GetByUserIdAsync(userId, cancellationToken);
         return Result<IReadOnlyList<VehicleResponseDto>>.Ok(vehicles.Select(ToDto).ToList());
     }
 
-    public async Task<Result<VehicleResponseDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Result<VehicleResponseDto>> GetByIdAsync(Guid userId, Guid id, CancellationToken cancellationToken = default)
     {
-        var vehicle = await _vehicleRepository.GetByIdAsync(id, cancellationToken);
+        if (userId == Guid.Empty)
+        {
+            return Result<VehicleResponseDto>.Fail("UserId is required");
+        }
+
+        var vehicle = await _vehicleRepository.GetByIdAsync(userId, id, cancellationToken);
         if (vehicle is null)
         {
             return Result<VehicleResponseDto>.Fail("Vehicle not found");
@@ -33,9 +43,14 @@ public sealed class VehicleService : IVehicleService
         return Result<VehicleResponseDto>.Ok(ToDto(vehicle));
     }
 
-    public async Task<Result<VehicleResponseDto>> CreateAsync(CreateVehicleRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<Result<VehicleResponseDto>> CreateAsync(Guid userId, CreateVehicleRequestDto request, CancellationToken cancellationToken = default)
     {
-        var existingVehicle = await _vehicleRepository.GetByPlateAsync(request.Plate, cancellationToken);
+        if (userId == Guid.Empty)
+        {
+            return Result<VehicleResponseDto>.Fail("UserId is required");
+        }
+
+        var existingVehicle = await _vehicleRepository.GetByPlateAsync(userId, request.Plate, cancellationToken);
         if (existingVehicle is not null)
         {
             return Result<VehicleResponseDto>.Fail("A vehicle with this plate already exists");
@@ -47,7 +62,7 @@ public sealed class VehicleService : IVehicleService
             return Result<VehicleResponseDto>.Fail(validationResult.Error!);
         }
 
-        var vehicle = new Vehicle(NormalizePlate(request.Plate), request.Brand, request.Model, request.Year, request.Propulsion);
+        var vehicle = new Vehicle(userId, NormalizePlate(request.Plate), request.Brand, request.Model, request.Year, request.Propulsion);
         ApplyMetrics(vehicle, request.FuelConsumptionKmPerLiter, request.CO2GramsPerKm, request.BatteryKwhPerKm);
 
         await _vehicleRepository.AddAsync(vehicle, cancellationToken);
@@ -55,15 +70,72 @@ public sealed class VehicleService : IVehicleService
         return Result<VehicleResponseDto>.Ok(ToDto(vehicle));
     }
 
-    public async Task<Result<VehicleResponseDto>> UpdateAsync(Guid id, UpdateVehicleRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<Result<BulkCreateVehicleResponseDto>> BulkCreateAsync(Guid userId, IReadOnlyList<BulkCreateVehicleRequestDto> request, CancellationToken cancellationToken = default)
     {
-        var vehicle = await _vehicleRepository.GetByIdAsync(id, cancellationToken);
+        if (userId == Guid.Empty)
+        {
+            return Result<BulkCreateVehicleResponseDto>.Fail("UserId is required");
+        }
+
+        if (request is null || request.Count == 0)
+        {
+            return Result<BulkCreateVehicleResponseDto>.Fail("At least one vehicle is required");
+        }
+
+        var normalizedPlates = request.Select(vehicle => NormalizePlate(vehicle.Plate)).ToList();
+        var existingPlates = await _vehicleRepository.GetExistingPlatesAsync(userId, normalizedPlates, cancellationToken);
+        var requestPlates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var vehiclesToCreate = new List<Vehicle>();
+        var duplicates = 0;
+
+        for (var index = 0; index < request.Count; index++)
+        {
+            var vehicleRequest = request[index];
+            var normalizedPlate = normalizedPlates[index];
+
+            if (existingPlates.Contains(normalizedPlate) || !requestPlates.Add(normalizedPlate))
+            {
+                duplicates++;
+                continue;
+            }
+
+            var validationResult = ValidateMetrics(vehicleRequest.Propulsion, vehicleRequest.FuelConsumptionKmPerLiter, vehicleRequest.CO2GramsPerKm, vehicleRequest.BatteryKwhPerKm);
+            if (!validationResult.IsSuccess)
+            {
+                return Result<BulkCreateVehicleResponseDto>.Fail($"Vehicle at index {index} is invalid: {validationResult.Error}");
+            }
+
+            var vehicle = new Vehicle(userId, normalizedPlate, vehicleRequest.Brand, vehicleRequest.Model, vehicleRequest.Year, vehicleRequest.Propulsion);
+            ApplyMetrics(vehicle, vehicleRequest.FuelConsumptionKmPerLiter, vehicleRequest.CO2GramsPerKm, vehicleRequest.BatteryKwhPerKm);
+            vehiclesToCreate.Add(vehicle);
+        }
+
+        if (vehiclesToCreate.Count > 0)
+        {
+            await _vehicleRepository.AddRangeAsync(vehiclesToCreate, cancellationToken);
+        }
+
+        return Result<BulkCreateVehicleResponseDto>.Ok(new BulkCreateVehicleResponseDto
+        {
+            Created = vehiclesToCreate.Count,
+            Duplicates = duplicates
+        });
+    }
+
+    public async Task<Result<VehicleResponseDto>> UpdateAsync(Guid userId, Guid id, UpdateVehicleRequestDto request, CancellationToken cancellationToken = default)
+    {
+        if (userId == Guid.Empty)
+        {
+            return Result<VehicleResponseDto>.Fail("UserId is required");
+        }
+
+        var vehicle = await _vehicleRepository.GetByIdAsync(userId, id, cancellationToken);
         if (vehicle is null)
         {
             return Result<VehicleResponseDto>.Fail("Vehicle not found");
         }
 
-        var existingVehicle = await _vehicleRepository.GetByPlateAsync(request.Plate, cancellationToken);
+        var existingVehicle = await _vehicleRepository.GetByPlateAsync(userId, request.Plate, cancellationToken);
         if (existingVehicle is not null && existingVehicle.Id != vehicle.Id)
         {
             return Result<VehicleResponseDto>.Fail("A vehicle with this plate already exists");
@@ -83,9 +155,14 @@ public sealed class VehicleService : IVehicleService
         return Result<VehicleResponseDto>.Ok(ToDto(vehicle));
     }
 
-    public async Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Result> DeleteAsync(Guid userId, Guid id, CancellationToken cancellationToken = default)
     {
-        var vehicle = await _vehicleRepository.GetByIdAsync(id, cancellationToken);
+        if (userId == Guid.Empty)
+        {
+            return Result.Fail("UserId is required");
+        }
+
+        var vehicle = await _vehicleRepository.GetByIdAsync(userId, id, cancellationToken);
         if (vehicle is null)
         {
             return Result.Fail("Vehicle not found");

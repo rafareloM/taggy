@@ -44,6 +44,7 @@ public sealed class TripService : ITripService
             userId,
             calculation.VehicleId,
             calculation.DistanceKm,
+            request.TollPrices.Count,
             calculation.TollCost,
             calculation.FuelCost,
             calculation.EnergyCost,

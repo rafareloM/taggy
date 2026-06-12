@@ -6,6 +6,7 @@ namespace taggyManagement.Domain.Entities
     public class Vehicle
     {
         public Guid Id { get; private set; }
+        public Guid UserId { get; private set; }
         public string Plate { get; private set; }
         public string Brand { get; private set; }
         public string Model { get; private set; }
@@ -26,9 +27,12 @@ namespace taggyManagement.Domain.Entities
             Model = string.Empty;
         }
 
-        public Vehicle(string plate, string brand, string model, int year, PropulsionType propulsion)
+        public Vehicle(Guid userId, string plate, string brand, string model, int year, PropulsionType propulsion)
         {
+            if (userId == Guid.Empty) throw new ArgumentException("User id is required", nameof(userId));
+
             Id = Guid.NewGuid();
+            UserId = userId;
             Plate = plate ?? throw new ArgumentNullException(nameof(plate));
             Brand = brand;
             Model = model;
