@@ -1,90 +1,471 @@
-# Taggy - Mobilidade Inteligente & Sustentável
+# 🚗 Taggy - Mobilidade Inteligente & Sustentável
 
-Um ecossistema completo para gestão de pedágios, monitoramento financeiro e análise de impacto ambiental em tempo real. O sistema une a conveniência do pagamento automático com a inteligência de dados para uma condução mais eficiente e ecológica.
+Sistema de gerenciamento de pedágios, planejamento de viagens, controle financeiro, automação de recargas e análise de impacto ambiental para motoristas e frotas.
 
-## 🚀 Funcionalidades
-
-* **💳 Monitor de Recarga Inteligente (Auto-Refill):** Lógica em C# que monitora o saldo da Taggy após cada débito. Caso atinja o limite mínimo de segurança, dispara uma recarga automática (via PIX/Débito), garantindo que o motorista nunca fique parado na cancela.
-* **🛣️ Calculadora de Rota com Custo Total:** Integração que soma o valor de todos os pedágios do trajeto à estimativa de consumo de combustível ou energia, entregando o custo real da viagem antes da partida.
-* **🌱 Eco-Simulator (Carbono e Bateria):** Funcionalidade que calcula a emissão de CO2 evitada (Classe Carbono) ou a economia de bateria (Classe Bateria), comparando diferentes rotas e sugerindo o caminho mais sustentável.
-* **🚗 Gestor de Frotas e Veículos (CRUD):** Painel administrativo para cadastrar veículos, definindo se são a combustão ou elétricos, permitindo que os cálculos de eficiência e sustentabilidade sejam precisos.
-* **📊 Extrato de Impacto Ambiental:** Um relatório detalhado gerado a partir do banco SQL que mostra o histórico de passagens e o acumulado de "Carbono não emitido" ao longo do tempo.
-* **🔍 Validador de Status em Tempo Real:** API de segurança que consulta a situação da tag e do veículo, bloqueando a criação de rotas ou sugerindo alternativas caso a tag esteja inativa ou o saldo seja insuficiente.
+Desenvolvido como MVP acadêmico para a disciplina de Projetos da CESAR School.
 
 ---
 
-## 🛠️ Estrutura de Negócio e Lógica
+# 📌 Objetivo
 
-Para garantir o funcionamento do ecossistema, o projeto implementa:
+O Taggy foi criado para fornecer uma plataforma capaz de:
 
-1.  **Simulador de Passagem:** Como o sistema é digital, implementamos um "Webhook Simulador" que emula a antena física do pedágio para disparar os gatilhos de débito e recarga automática.
-2.  **Lógica de Propulsão:** Diferenciação algorítmica entre veículos a combustão (foco em emissão de CO2) e elétricos (foco em autonomia de bateria e eficiência energética).
-3.  **Conversão Ambiental:** Algoritmo que transforma a distância percorrida e a eficiência do motor em dados reais de preservação ambiental (Carbono salvo).
-
----
-
-## 📦 Dependências
-
-* **ASP.NET Core** (C# 12)
-* **SQL Server** (Transações, Tarifas e Parâmetros de Sustentabilidade)
-
----
-
-## 🗄️ Diagrama do Banco de Dados
-
-O banco de dados foi estruturado para suportar escalabilidade e histórico:
-* **Tabela de Transações:** Histórico de passagens e débitos.
-* **Tabela de Concessionárias:** Consulta de tarifas vigentes.
-* **Tabela de Veículos:** Atributos de consumo (km/l) e índices de emissão.
-
-<img width="1461" height="668" alt="image" src="https://github.com/user-attachments/assets/bf4a1031-3414-40a6-a9b1-e2a5c6f9352a" />
-
-> 🔗 [Acesse o diagrama aqui]()
+* Planejar viagens considerando custos reais.
+* Calcular gastos com combustível ou energia elétrica.
+* Calcular custos de pedágios.
+* Gerenciar saldo de uma TAG virtual.
+* Automatizar recargas de saldo.
+* Registrar histórico de viagens.
+* Gerenciar veículos e frotas.
+* Medir economia de tempo em pedágios.
+* Gerar indicadores ambientais.
+* Fornecer métricas consolidadas de utilização da frota.
 
 ---
 
-## 🗺️ Fluxograma do Usuário
+# 🚀 Funcionalidades
 
-O fluxo abrange desde o check de saldo inicial, a escolha da "Rota Verde", até o disparo do Auto-Refill após a validação da tag na praça de pedágio.
+## 💳 Conta TAG Inteligente
 
-<img width="1600" height="872" alt="image" src="https://github.com/user-attachments/assets/cac5a680-cc59-4017-8215-7e4a0187dfac" />
+Cada usuário possui automaticamente uma conta TAG.
 
-> 🔗 [Acesse o Miro aqui]()
+Funcionalidades:
+
+* Consulta de saldo.
+* Recarga manual.
+* Extrato financeiro.
+* Integração com Auto Refill.
+* Integração com Simulador de Pedágio.
+
+Endpoints:
+
+POST /api/v1/tag-account/recharge
+
+GET /api/v1/tag-account/balance
+
+GET /api/v1/tag-account/statement
 
 ---
 
-## 💡 Diferencial
-Diferente de sistemas de monitoramento passivo, o **Taggy** atua na **operação direta**: ele gerencia o pagamento, garante o saldo via automação e valida a segurança da tag em tempo real, mantendo a pegada ecológica como o critério principal para a escolha de rotas.
+## 🔄 Auto Refill
 
----
+Monitoramento automático do saldo da TAG.
 
-## 🔐 User CRUD and Login
+Quando o saldo atingir o limite mínimo configurado, o sistema realiza automaticamente uma recarga.
 
-The API now includes a self-service user flow with JWT bearer authentication:
+Endpoints:
 
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `GET /api/v1/users/me`
-- `PUT /api/v1/users/me`
-- `PATCH /api/v1/users/me/password`
-- `DELETE /api/v1/users/me`
+GET /api/v1/auto-refill
 
-The current implementation uses an in-memory database so the API can be run and tested immediately. To change the JWT settings, edit the `Jwt` section in `src/taggyManagement.API/appsettings.json`.
+POST /api/v1/auto-refill
 
-### Run locally
+Exemplo:
 
-```bash
-dotnet build taggyManagement.slnx
-dotnet run --project src/taggyManagement.API/taggyManagement.API.csproj
+```json
+{
+  "enabled": true,
+  "minimumBalance": 20,
+  "rechargeAmount": 50
+}
 ```
 
-By default the API listens on `http://localhost:5158` in the development profile.
+---
 
-### Import into Postman
+## 🛣 Simulador de Pedágio
 
-Import these files into Postman:
+Simula a passagem por uma praça de pedágio.
 
-- `docs/postman/taggy-api.postman_collection.json`
-- `docs/postman/taggy-api.postman_environment.json`
+Funcionalidades:
 
-After that, run `Register` or `Login` first. The login response stores `accessToken` automatically in the environment, and the user requests reuse it as the Bearer token.
+* Débito automático.
+* Registro financeiro.
+* Integração com Auto Refill.
+
+Endpoint:
+
+POST /api/v1/toll/simulate
+
+---
+
+## 🚙 Gestão de Veículos
+
+CRUD completo de veículos.
+
+Tipos suportados:
+
+* Combustion
+* Electric
+* Hybrid
+
+Endpoints:
+
+GET /api/v1/vehicles
+
+GET /api/v1/vehicles/{id}
+
+POST /api/v1/vehicles
+
+PUT /api/v1/vehicles/{id}
+
+DELETE /api/v1/vehicles/{id}
+
+---
+
+## 🚚 Importação em Massa de Veículos
+
+Permite cadastrar múltiplos veículos simultaneamente.
+
+Endpoint:
+
+POST /api/v1/vehicles/bulk
+
+Recursos:
+
+* Cadastro em lote.
+* Validação automática.
+* Controle de duplicidade.
+* Associação ao usuário autenticado.
+
+Exemplo de retorno:
+
+```json
+{
+  "created": 2,
+  "duplicates": 0
+}
+```
+
+---
+
+## 🗺 Planejamento de Viagens
+
+Calcula o custo total estimado de uma viagem.
+
+Considera:
+
+* Distância percorrida.
+* Consumo do veículo.
+* Preço do combustível.
+* Preço da energia elétrica.
+* Custos de pedágio.
+* Emissão de CO₂.
+
+Endpoint:
+
+POST /api/v1/trips/calculate
+
+---
+
+## 📚 Histórico de Viagens
+
+Permite registrar e consultar viagens realizadas.
+
+Informações armazenadas:
+
+* Veículo utilizado.
+* Distância percorrida.
+* Custos de combustível.
+* Custos de energia.
+* Custos de pedágio.
+* Emissão de CO₂.
+* Quantidade de passagens em pedágios.
+
+Endpoints:
+
+POST /api/v1/trips
+
+GET /api/v1/trips
+
+GET /api/v1/trips/{id}
+
+---
+
+## 🌱 Eco Simulator
+
+Módulo responsável por indicadores ambientais.
+
+Calcula:
+
+* Emissões de CO₂.
+* CO₂ evitado pelo uso da TAG.
+* Impacto ambiental da frota.
+
+---
+
+# 📊 Fleet Analytics
+
+Módulo de análise consolidada da frota.
+
+## Dashboard
+
+Endpoint:
+
+GET /api/v1/fleet/dashboard
+
+Indicadores:
+
+* Total de veículos.
+* Total de viagens.
+* Distância total percorrida.
+* Gasto total com combustível.
+* Gasto total com pedágios.
+* Emissão total de CO₂.
+* Total gasto com TAG.
+
+---
+
+## 📅 Relatório Mensal
+
+Endpoint:
+
+GET /api/v1/fleet/monthly?year=2026&month=6
+
+Indicadores:
+
+* Veículos utilizados.
+* Quantidade de viagens.
+* Distância percorrida.
+* Custos operacionais.
+* Emissões de CO₂.
+
+---
+
+## 🌱 Impacto Ambiental
+
+Endpoint:
+
+GET /api/v1/fleet/environment
+
+Retorna:
+
+* Total de passagens em pedágios.
+* CO₂ evitado.
+
+---
+
+## ⏱ Economia de Tempo
+
+Endpoint:
+
+GET /api/v1/fleet/time-savings
+
+Retorna:
+
+* Total de passagens.
+* Minutos economizados.
+* Horas economizadas.
+* Dias economizados.
+
+Premissa utilizada:
+
+* 5 minutos economizados por passagem utilizando TAG.
+
+---
+
+# 🔐 Autenticação e Usuários
+
+Autenticação baseada em JWT.
+
+Endpoints:
+
+POST /api/v1/auth/register
+
+POST /api/v1/auth/login
+
+GET /api/v1/users/me
+
+PUT /api/v1/users/me
+
+PATCH /api/v1/users/me/password
+
+DELETE /api/v1/users/me
+
+Recursos:
+
+* Cadastro.
+* Login.
+* Alteração de senha.
+* Atualização de perfil.
+* Exclusão de conta.
+
+---
+
+# 🏗 Arquitetura
+
+O projeto segue arquitetura em camadas:
+
+API
+
+* Controllers
+
+Application
+
+* DTOs
+* Services
+
+Domain
+
+* Entities
+* Interfaces
+* Value Objects
+
+Infrastructure
+
+* Repositories
+* Services
+* Data
+* Migrations
+
+---
+
+# 🛠 Tecnologias Utilizadas
+
+* .NET 10
+* ASP.NET Core
+* Entity Framework Core
+* SQLite
+* JWT Authentication
+* Swagger / OpenAPI
+* Git
+* GitHub
+
+---
+
+# 🗄 Banco de Dados
+
+Banco utilizado:
+
+SQLite
+
+Arquivo:
+
+taggy.db
+
+Migrations:
+
+* InitialCreate
+* AddTagAccountModule
+* AddAutoRefillAndTollSimulator
+* AddTripHistory
+* AddFleetAnalyticsAndVehicleOwnership
+* AddTripTollPassageCount
+
+---
+
+# 🚀 Como Executar
+
+## Restaurar Dependências
+
+```bash
+dotnet restore
+```
+
+## Aplicar Migrations
+
+```bash
+dotnet ef database update \
+--project src/taggyManagement.Infrastructure/taggyManagement.Infrastructure.csproj \
+--startup-project src/taggyManagement.API/taggyManagement.API.csproj
+```
+
+## Executar API
+
+```bash
+dotnet run --project src/taggyManagement.API
+```
+
+---
+
+# 📖 Swagger
+
+Após iniciar a aplicação:
+
+http://localhost:5158/swagger
+
+Permite:
+
+* Testar endpoints.
+* Realizar autenticação JWT.
+* Validar regras de negócio.
+* Simular fluxos completos do sistema.
+
+---
+
+# 🔒 Requisitos Não Funcionais
+
+## Segurança
+
+* JWT Authentication.
+* Senhas com Hash + Salt.
+* Endpoints protegidos.
+* Validação por DTOs.
+* Controle de acesso por usuário.
+* Isolamento multiusuário.
+
+## LGPD
+
+* Coleta mínima de dados.
+* Proteção de credenciais.
+* Controle de acesso aos dados.
+* Exclusão de conta.
+* Não compartilhamento de informações pessoais.
+
+## Disponibilidade
+
+* API REST stateless.
+* Persistência SQLite.
+* Arquitetura desacoplada.
+* Documentação via Swagger.
+
+## Backup e Continuidade
+
+* Backup periódico do arquivo SQLite.
+* Recuperação por restauração do banco.
+
+---
+
+# ✅ Funcionalidades Implementadas
+
+* Autenticação JWT
+* Cadastro de usuários
+* Gestão de senhas
+* CRUD de veículos
+* Importação em massa de veículos
+* Planejamento de viagens
+* Histórico de viagens
+* Conta TAG
+* Recarga manual
+* Extrato financeiro
+* Simulador de pedágio
+* Auto Refill
+* Fleet Analytics
+* Dashboard da frota
+* Relatórios mensais
+* Métricas ambientais
+* Economia de tempo
+* Cálculo de CO₂
+* Cálculo de CO₂ evitado
+* Ownership de veículos
+* Isolamento multiusuário
+* SQLite Persistence
+* EF Core Migrations
+* Swagger/OpenAPI
+
+---
+
+# 👥 Equipe
+
+Grupo B
+
+* Ramon Leal Frazão
+* Pedro Raimundo Sampaio
+* Tiago Alcoforado Santos
+* Iago Figueiroa Soares
+* Rafael Morais de Azevedo
+* Vinicius Beltrão de Melo Ferraz Lima
+
+---
+
+# 📄 Licença
+
+Projeto desenvolvido exclusivamente para fins acadêmicos.
