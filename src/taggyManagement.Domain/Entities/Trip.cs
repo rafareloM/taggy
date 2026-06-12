@@ -6,6 +6,7 @@ public class Trip
     public Guid UserId { get; private set; }
     public Guid VehicleId { get; private set; }
     public decimal DistanceKm { get; private set; }
+    public int TollPassageCount { get; private set; }
     public decimal TollCost { get; private set; }
     public decimal FuelCost { get; private set; }
     public decimal EnergyCost { get; private set; }
@@ -21,6 +22,7 @@ public class Trip
         Guid userId,
         Guid vehicleId,
         decimal distanceKm,
+        int tollPassageCount,
         decimal tollCost,
         decimal fuelCost,
         decimal energyCost,
@@ -30,6 +32,7 @@ public class Trip
         if (userId == Guid.Empty) throw new ArgumentException("User id is required", nameof(userId));
         if (vehicleId == Guid.Empty) throw new ArgumentException("Vehicle id is required", nameof(vehicleId));
         if (distanceKm <= 0) throw new ArgumentOutOfRangeException(nameof(distanceKm), "Distance must be greater than zero");
+        if (tollPassageCount < 0) throw new ArgumentOutOfRangeException(nameof(tollPassageCount), "Toll passage count cannot be negative");
         if (tollCost < 0) throw new ArgumentOutOfRangeException(nameof(tollCost), "Toll cost cannot be negative");
         if (fuelCost < 0) throw new ArgumentOutOfRangeException(nameof(fuelCost), "Fuel cost cannot be negative");
         if (energyCost < 0) throw new ArgumentOutOfRangeException(nameof(energyCost), "Energy cost cannot be negative");
@@ -42,6 +45,7 @@ public class Trip
             UserId = userId,
             VehicleId = vehicleId,
             DistanceKm = distanceKm,
+            TollPassageCount = tollPassageCount,
             TollCost = tollCost,
             FuelCost = fuelCost,
             EnergyCost = energyCost,

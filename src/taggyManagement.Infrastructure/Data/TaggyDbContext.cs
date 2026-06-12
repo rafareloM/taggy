@@ -38,6 +38,7 @@ public sealed class TaggyDbContext : DbContext
         {
             entity.HasKey(vehicle => vehicle.Id);
             entity.Property(vehicle => vehicle.Id).ValueGeneratedNever();
+            entity.Property(vehicle => vehicle.UserId).IsRequired();
             entity.Property(vehicle => vehicle.Plate).HasMaxLength(20).IsRequired();
             entity.Property(vehicle => vehicle.Brand).HasMaxLength(80).IsRequired();
             entity.Property(vehicle => vehicle.Model).HasMaxLength(80).IsRequired();
@@ -46,7 +47,8 @@ public sealed class TaggyDbContext : DbContext
             entity.Property(vehicle => vehicle.FuelConsumptionKmPerLiter);
             entity.Property(vehicle => vehicle.CO2GramsPerKm);
             entity.Property(vehicle => vehicle.BatteryKwhPerKm);
-            entity.HasIndex(vehicle => vehicle.Plate).IsUnique();
+            entity.HasIndex(vehicle => vehicle.UserId);
+            entity.HasIndex(vehicle => new { vehicle.UserId, vehicle.Plate }).IsUnique();
         });
 
         modelBuilder.Entity<TagAccount>(entity =>
@@ -104,6 +106,7 @@ public sealed class TaggyDbContext : DbContext
             entity.Property(trip => trip.UserId).IsRequired();
             entity.Property(trip => trip.VehicleId).IsRequired();
             entity.Property(trip => trip.DistanceKm).IsRequired();
+            entity.Property(trip => trip.TollPassageCount).IsRequired();
             entity.Property(trip => trip.TollCost).IsRequired();
             entity.Property(trip => trip.FuelCost).IsRequired();
             entity.Property(trip => trip.EnergyCost).IsRequired();

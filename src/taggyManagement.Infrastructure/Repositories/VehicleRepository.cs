@@ -23,9 +23,24 @@ public sealed class VehicleRepository : IVehicleRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Vehicle>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Vehicles
+            .Where(vehicle => vehicle.UserId == userId)
+            .OrderBy(vehicle => vehicle.Brand)
+            .ThenBy(vehicle => vehicle.Model)
+            .ThenBy(vehicle => vehicle.Plate)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<Vehicle?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return _context.Vehicles.FirstOrDefaultAsync(vehicle => vehicle.Id == id, cancellationToken);
+    }
+
+    public Task<Vehicle?> GetByIdAsync(Guid userId, Guid id, CancellationToken cancellationToken = default)
+    {
+        return _context.Vehicles.FirstOrDefaultAsync(vehicle => vehicle.UserId == userId && vehicle.Id == id, cancellationToken);
     }
 
     public Task<Vehicle?> GetByPlateAsync(string plate, CancellationToken cancellationToken = default)
@@ -34,9 +49,36 @@ public sealed class VehicleRepository : IVehicleRepository
         return _context.Vehicles.FirstOrDefaultAsync(vehicle => vehicle.Plate.ToUpper() == normalizedPlate, cancellationToken);
     }
 
+    public Task<Vehicle?> GetByPlateAsync(Guid userId, string plate, CancellationToken cancellationToken = default)
+    {
+        var normalizedPlate = NormalizePlate(plate);
+        return _context.Vehicles.FirstOrDefaultAsync(vehicle => vehicle.UserId == userId && vehicle.Plate.ToUpper() == normalizedPlate, cancellationToken);
+    }
+
+    public async Task<IReadOnlySet<string>> GetExistingPlatesAsync(Guid userId, IEnumerable<string> plates, CancellationToken cancellationToken = default)
+    {
+        var normalizedPlates = plates
+            .Select(NormalizePlate)
+            .Where(plate => !string.IsNullOrWhiteSpace(plate))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var existingPlates = await _context.Vehicles
+            .Where(vehicle => vehicle.UserId == userId && normalizedPlates.Contains(vehicle.Plate.ToUpper()))
+            .Select(vehicle => vehicle.Plate)
+            .ToListAsync(cancellationToken);
+
+        return existingPlates.ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
     public async Task AddAsync(Vehicle vehicle, CancellationToken cancellationToken = default)
     {
         await _context.Vehicles.AddAsync(vehicle, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task AddRangeAsync(IEnumerable<Vehicle> vehicles, CancellationToken cancellationToken = default)
+    {
+        await _context.Vehicles.AddRangeAsync(vehicles, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
 

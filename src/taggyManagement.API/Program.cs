@@ -25,6 +25,7 @@ builder.Services.AddScoped<ITagAccountRepository, TagAccountRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IAutoRefillSettingsRepository, AutoRefillSettingsRepository>();
 builder.Services.AddScoped<ITripRepository, TripRepository>();
+builder.Services.AddScoped<IFleetAnalyticsRepository, FleetAnalyticsRepository>();
 builder.Services.AddScoped<PasswordHasher>();
 builder.Services.AddScoped<IAuthService, JwtTokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -33,6 +34,7 @@ builder.Services.AddScoped<ITripCalculationService, TripCalculationService>();
 builder.Services.AddScoped<ITagAccountService, TagAccountService>();
 builder.Services.AddScoped<IAutoRefillService, AutoRefillService>();
 builder.Services.AddScoped<ITripService, TripService>();
+builder.Services.AddScoped<IFleetAnalyticsService, FleetAnalyticsService>();
 
 builder.Services.AddControllers()
 	.AddJsonOptions(options =>
