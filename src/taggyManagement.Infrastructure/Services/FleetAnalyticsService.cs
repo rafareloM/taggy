@@ -62,6 +62,8 @@ public sealed class FleetAnalyticsService : IFleetAnalyticsService
         var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
         var endDate = startDate.AddMonths(1);
         var trips = await _fleetAnalyticsRepository.GetTripsByPeriodAsync(userId, startDate, endDate, cancellationToken);
+        var tollPassageCount = trips.Sum(trip => trip.TollPassageCount);
+        var timeSavedMinutes = tollPassageCount * MinutesSavedPerTollPassage;
 
         return Result<MonthlyFleetAnalyticsResponseDto>.Ok(new MonthlyFleetAnalyticsResponseDto
         {
@@ -72,7 +74,11 @@ public sealed class FleetAnalyticsService : IFleetAnalyticsService
             TotalDistanceKm = trips.Sum(trip => trip.DistanceKm),
             TotalTollCost = trips.Sum(trip => trip.TollCost),
             TotalFuelCost = trips.Sum(trip => trip.FuelCost),
-            TotalCO2EmissionKg = trips.Sum(trip => trip.CO2EmissionKg)
+            TotalCO2EmissionKg = trips.Sum(trip => trip.CO2EmissionKg),
+            TollPassageCount = tollPassageCount,
+            CO2AvoidedKg = tollPassageCount * Co2AvoidedPerTollPassageKg,
+            TimeSavedMinutes = timeSavedMinutes,
+            TimeSavedHours = Math.Round(timeSavedMinutes / 60m, 2)
         });
     }
 

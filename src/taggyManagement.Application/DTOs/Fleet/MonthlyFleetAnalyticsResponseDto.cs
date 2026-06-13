@@ -10,4 +10,8 @@ public sealed class MonthlyFleetAnalyticsResponseDto
     public decimal TotalTollCost { get; set; }
     public decimal TotalFuelCost { get; set; }
     public decimal TotalCO2EmissionKg { get; set; }
+    public int TollPassageCount { get; set; }
+    public decimal CO2AvoidedKg { get; set; }
+    public int TimeSavedMinutes { get; set; }
+    public decimal TimeSavedHours { get; set; }
 }
